@@ -1,9 +1,11 @@
 package com.ecommerce.Ecom.controller;
 
+import com.ecommerce.Ecom.config.AppConstants;
 import com.ecommerce.Ecom.model.Product;
 import com.ecommerce.Ecom.payload.ProductDto;
 import com.ecommerce.Ecom.payload.ProductResponse;
 import com.ecommerce.Ecom.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +21,17 @@ public class ProductController {
     @Autowired
     private ProductService productService;
     @PostMapping("/admin/categories/{categoryId}/product")
-    public ResponseEntity<ProductDto> addProduct(@RequestBody ProductDto productDto,
+    public ResponseEntity<ProductDto> addProduct(@Valid @RequestBody ProductDto productDto,
                                                  @PathVariable Long categoryId) {
     ProductDto savedproductDto= productService.addProduct(categoryId,productDto);
     return new ResponseEntity<>(savedproductDto, HttpStatus.CREATED);
     }
 
     @GetMapping("/public/products")
-    public ResponseEntity<ProductResponse> getAllProducts() {
-        ProductResponse productsResponse=productService.getAllProducts();
+    public ResponseEntity<ProductResponse> getAllProducts(@RequestParam(name="pageNumber",defaultValue = AppConstants.PAGE_NUMBER,required = false)Integer pageNumber
+            ,@RequestParam(name="pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false)Integer pageSize
+            ,@RequestParam(name = "sortBy",defaultValue = AppConstants.SORT_PRODUCTS_BY,required = false)String sortBy,@RequestParam(name = "sortOrder",defaultValue = AppConstants.SORT_DIRECTION,required = false)String sortOrder) {
+        ProductResponse productsResponse=productService.getAllProducts(pageNumber,pageSize,sortBy,sortOrder);
         return new ResponseEntity<>(productsResponse, HttpStatus.OK);
     }
     @GetMapping("/public/categories/{categoryId}/products")
@@ -42,7 +46,7 @@ public class ProductController {
     }
 
     @PutMapping("admin/products/{productId}")
-    public ResponseEntity<ProductDto> updateProduct(@PathVariable Long productId,
+    public ResponseEntity<ProductDto> updateProduct(@Valid @PathVariable Long productId,
                                                     @RequestBody ProductDto productDto) {
         ProductDto savedProductDto= productService.updateProduct(productId,productDto);
         return new ResponseEntity<>(savedProductDto, HttpStatus.OK);

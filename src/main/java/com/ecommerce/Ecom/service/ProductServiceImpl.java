@@ -1,5 +1,6 @@
 package com.ecommerce.Ecom.service;
 
+import com.ecommerce.Ecom.exceptions.APIException;
 import com.ecommerce.Ecom.exceptions.ResourceNotFoundException;
 import com.ecommerce.Ecom.model.Category;
 import com.ecommerce.Ecom.model.Product;
@@ -10,6 +11,10 @@ import com.ecommerce.Ecom.repositories.ProductRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,9 +40,20 @@ public class ProductServiceImpl implements ProductService {
     private String path;
     @Override
     public ProductDto addProduct(Long categoryId, ProductDto productDto) {
+
     Category category = categoryRepository.findById(categoryId).orElseThrow(
             ()-> new ResourceNotFoundException("Category","categoryId",categoryId)
     );
+//    CONTROLLO SE PRODOTTO ESISTE ATTRAVERSO VARIABILE BOOLEANA O ALTIMENTI POSSIAMO USARE LE STREAM CON IL METODO MatchNone()
+    boolean isProductIsNotPresent = true;
+    List<Product> products = category.getProducts();
+    for (Product product : products) {
+        if (product.getProductName().equals(productDto.getProductName())) {
+            isProductIsNotPresent = false;
+            break;
+        }
+    }
+    if(isProductIsNotPresent){
     Product product = modelMapper.map(productDto, Product.class);
     product.setImage("default.png");
     product.setCategory(category);
@@ -47,16 +63,31 @@ public class ProductServiceImpl implements ProductService {
     Product savedProduct = productRepository.save(product);
     return modelMapper.map(savedProduct, ProductDto.class);
 
+    }else {
+        throw new APIException("Product already exists");
+    }
+
     }
 
     @Override
-    public ProductResponse getAllProducts() {
-       List<Product> products = productRepository.findAll();
+    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize,String sortBy,String sortDirection) {
+        Sort sortByandOrder = sortDirection.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize,sortByandOrder);
+        Page<Product> productPaged = productRepository.findAll(pageDetails);
+       List<Product> products = productPaged.getContent();
        List<ProductDto> productDtos = products.stream()
                .map(product-> modelMapper.map(product,ProductDto.class))
                .collect(Collectors.toList());
+       if (products.isEmpty()) {
+           throw  new APIException("No products found");
+       }
        ProductResponse productResponse = new ProductResponse();
        productResponse.setContent(productDtos);
+       productResponse.setPageNumber(productPaged.getNumber());
+       productResponse.setPageSize(productPaged.getSize());
+       productResponse.setTotalPages(productPaged.getTotalPages());
+       productResponse.setTotalElements(productPaged.getTotalElements());
+       productResponse.setLastPage(productPaged.isLast());
        return productResponse;
     }
 
