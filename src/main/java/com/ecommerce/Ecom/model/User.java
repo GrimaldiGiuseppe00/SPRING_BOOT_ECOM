@@ -27,7 +27,7 @@ public class User {
     @NotBlank
     @Size(max=20)
     @Column(name="username")
-    private String userName;
+    private String username;
     @NotBlank
     @Size(max=120)
     @Column(name="password")
@@ -38,8 +38,8 @@ public class User {
     @Column(name="email")
     private String email;
 
-    public User(String userName, String password, String email) {
-        this.userName = userName;
+    public User(String username, String password, String email) {
+        this.username = username;
         this.password = password;
         this.email = email;
     }

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Data
-public class UserDetailImpl implements UserDetails {
+public class UserDetailsImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
     private Long id;
     private String username;
@@ -24,24 +24,24 @@ public class UserDetailImpl implements UserDetails {
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailImpl(Long id, String password, String email, String username, Collection<? extends GrantedAuthority> authorities) {
+    public UserDetailsImpl(Long id, String password, String email, String username, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.password = password;
         this.email = email;
         this.username = username;
         this.authorities = authorities;
     }
-    public static UserDetailImpl build(User user) {
+    public static UserDetailsImpl build(User user) {
         List<GrantedAuthority> authorities =user.getRoles().
                 stream()
                 .map(role -> new SimpleGrantedAuthority(role.getRoleName().name())).
                 collect(Collectors.toList());
 
-        return new UserDetailImpl(
+        return new UserDetailsImpl(
                 user.getUserId(),
                 user.getPassword(),
                 user.getEmail(),
-                user.getUserName(),
+                user.getUsername(),
                 authorities);
     }
     @Override
@@ -82,7 +82,7 @@ public class UserDetailImpl implements UserDetails {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserDetailImpl user = (UserDetailImpl) o;
+        UserDetailsImpl user = (UserDetailsImpl) o;
         return Objects.equals(id, user.id);
     }
 }
