@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class CartController {
@@ -18,5 +20,15 @@ public class CartController {
                                                     @PathVariable Integer quantity){
         CartDto cartDto = cartService.addProductToCart(productId,quantity);
         return new ResponseEntity<>(cartDto,HttpStatus.CREATED);
+    }
+    @GetMapping("/carts")
+    public ResponseEntity<List<CartDto>> getCarts(){
+        List<CartDto> cartDTOS= cartService.getAllCarts();
+        return new ResponseEntity<>(cartDTOS, HttpStatus.FOUND);
+    }
+    @GetMapping("/carts/users/cart")
+    public ResponseEntity<CartDto> getCartById(){
+       CartDto cartDto= cartService.getCart();
+       return new ResponseEntity<>(cartDto,HttpStatus.OK);
     }
 }
